@@ -1,659 +1,911 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Campus to Commerce | Student Entrepreneurship Portal</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- React & ReactDOM -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    
-    <!-- Babel -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <!-- Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-
-    <style>
-        /* Custom styles */
-        @keyframes modalFadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .modal-content {
-            animation: modalFadeIn 0.3s ease-out;
-        }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f8fafc; }
-        ::-webkit-scrollbar-thumb { background: #0f172a; border-radius: 4px; }
-        .fade-in { animation: fadeIn 0.5s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Campus to Commerce — LMS (Final Project)</title>
+<style>
+  :root{
+    --navy:#0b3d91; --teal:#0b9aa3; --coral:#ff6f61; --muted:#f4f6f8; --dark:#222428;
+    --card:#ffffff; --shadow:0 6px 18px rgba(11,61,145,0.08); --radius:12px;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;display:flex;min-height:100vh;background:linear-gradient(180deg,var(--muted),#fff);color:var(--dark)}
+  /* Sidebar */
+  .sidebar{width:240px;background:var(--navy);color:white;position:fixed;height:100vh;overflow:auto;padding-top:18px}
+  .brand{display:flex;align-items:center;gap:12px;padding:0 18px 18px;border-bottom:1px solid rgba(255,255,255,0.04)}
+  .logo{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,var(--teal),var(--navy));display:flex;align-items:center;justify-content:center;font-weight:700;color:white}
+  .site-name{font-weight:700}
+  .nav{margin-top:18px;display:flex;flex-direction:column}
+  .nav a{padding:12px 18px;color:white;text-decoration:none;font-weight:600;border-left:4px solid transparent}
+  .nav a:hover{background:rgba(255,255,255,0.02)}
+  .nav a.active{background:rgba(255,255,255,0.03);border-left-color:var(--teal)}
+  /* Main area */
+  .main{margin-left:240px;flex:1;padding:24px;max-width:1200px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  h1.site-title{font-size:28px;color:var(--navy);margin:0;font-weight:800}
+  .card{background:var(--card);border-radius:12px;padding:18px;box-shadow:var(--shadow);margin-bottom:18px}
+  .grid{display:grid;grid-template-columns:1fr 360px;gap:18px}
+  /* Module styling */
+  .module{border:1px solid #e6eef8;border-radius:10px;padding:12px;margin-bottom:12px}
+  .module h3{margin:0;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+  .module .content{display:none;padding-top:12px}
+  .lesson{border-radius:8px;padding:10px;background:#fbfdff;margin-bottom:10px}
+  .assignment-box{background:#eef8ff;padding:10px;border-radius:8px;margin-top:10px}
+  textarea{width:100%;min-height:80px;padding:8px;border-radius:6px;border:1px solid #dceaf5}
+  button{background:var(--navy);color:white;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;margin-top:8px}
+  button.secondary{background:var(--teal)}
+  .placeholder{background:linear-gradient(180deg,rgba(11,154,163,0.06),transparent);border:2px dashed #d6eaf0;border-radius:8px;padding:18px;text-align:center;color:#557f88}
+  /* Activities */
+  .drag-area{display:flex;gap:12px;align-items:flex-start}
+  .draggable{background:white;padding:8px;border-radius:6px;border:1px dashed #cfe6ea;cursor:grab}
+  .dropzone{min-height:100px;border:2px dashed #e1eef2;border-radius:8px;padding:8px}
+  /* Quiz UI */
+  .quiz-list{display:flex;gap:8px;flex-wrap:wrap}
+  .quiz-card{background:#fff;border-radius:8px;padding:10px;border:1px solid #e7f1fb;min-width:200px}
+  .question{margin-top:12px}
+  .option{border:1px solid #e7f1fb;padding:10px;border-radius:8px;margin-bottom:8px;cursor:pointer}
+  .option.selected{border-color:var(--teal);box-shadow:0 6px 18px rgba(11,154,163,0.06)}
+  .feedback{padding:10px;border-radius:8px;margin-top:8px;background:#fffbe6;border:1px solid #ffe59e;color:#5b3d00}
+  .correct{background:#e9fbf7;border:1px solid #b8f0df;color:#006442;padding:10px;border-radius:8px}
+  .summary{padding:12px;border-radius:8px;background:#f1f9f8;border:1px solid #d9efe9}
+  /* Responsive */
+  @media (max-width:980px){
+    .grid{grid-template-columns:1fr}
+    .main{padding:12px}
+    .sidebar{position:relative;width:100%;height:auto}
+    body{flex-direction:column}
+  }
+</style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans">
+<body>
+  <aside class="sidebar" aria-label="Main navigation">
+    <div class="brand">
+      <div class="logo">C2C</div>
+      <div>
+        <div class="site-name">Campus to Commerce</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.8)">Final Project</div>
+      </div>
+    </div>
 
-    <div id="root"></div>
+    <nav class="nav" id="sidebarNav">
+      <a href="#" class="active" data-target="home">Home</a>
+      <a href="#" data-target="announcements">Announcements</a>
+      <a href="#" data-target="modules">Modules</a>
+      <a href="#" data-target="assignmentsPage">Assignments</a>
+      <a href="#" data-target="quizzesPage">Quizzes</a> <!-- moved to 5th -->
+      <a href="#" data-target="discussions">Discussions</a>
+      <a href="#" data-target="gradesPage">Grades</a>
+      <a href="#" data-target="pages">Pages</a>
+      <a href="#" data-target="files">Files</a>
+      <a href="#" data-target="syllabus">Syllabus</a>
+    </nav>
+  </aside>
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+  <main class="main" id="main">
+    <header style="margin-bottom:12px">
+      <h1 class="site-title">Campus to Commerce</h1>
+      <div style="font-size:14px;color:#557f88">Interactive course unit — redesigned for instructor feedback</div>
+    </header>
 
-        // --- DATA: ASSIGNMENTS (Strategy Module only for now) ---
-        const strategyAssignments = [
-            {
-                id: 'A1',
-                title: "The Review Mining Audit (0$ Challenge)",
-                difficulty: "Easy",
-                time: "1 Hour",
-                objective: "Identify a core product flaw to fix with zero capital.",
-                task: "Read the 1-star reviews for the top 3 competitor products in your niche on Amazon/Etsy. Identify the single biggest, most repeated complaint. Propose how your product could solve this flaw in one sentence. (The goal is a product idea that requires no upfront money.)"
-            },
-            {
-                id: 'A2',
-                title: "The $10 Ad Launch",
-                difficulty: "Hard",
-                time: "4 Hours",
-                objective: "Basic paid traffic execution and metric tracking.",
-                task: "Using exactly $10, launch a Facebook or Instagram ad campaign. The goal is *not* to sell, but to track two metrics: Cost Per Click (CPC) and Click-Through Rate (CTR). Record the results to establish a baseline for viability."
-            },
-            {
-                id: 'A3',
-                title: "The Competitor Clone Test",
-                difficulty: "Medium",
-                time: "1 Hour",
-                objective: "Reverse-engineer and improve the competitor's value proposition.",
-                task: "Choose a competitor's successful product page. Write down their 5 key product bullet points. Rewrite 5 *better, benefit-driven* bullet points for your imaginary product that addresses the pain points found in the Review Mining Audit."
-            },
-            {
-                id: 'A4',
-                title: "The Supplier Negotiation Script",
-                difficulty: "Medium",
-                time: "2 Hours",
-                objective: "Practice professional sourcing communication.",
-                task: "Draft a detailed email to an Alibaba supplier requesting a sample. The email must include 3 specific, probing questions about material quality, minimum order quantity (MOQ), and payment terms."
-            },
-            {
-                id: 'A5',
-                title: "The Dorm Room Inventory Check",
-                difficulty: "Easy",
-                time: "30 Mins",
-                objective: "Understand physical logistics/storage costs.",
-                task: "Clear out a space equivalent to a large shoebox. Calculate the maximum quantity of a small item (e.g., a keychain or sticker roll) that could physically fit. Use this to estimate your maximum home inventory capacity and cost."
-            }
-        ];
-        
-        // Mapping of assignment IDs to their data
-        const allAssignments = {
-            'A1': strategyAssignments[0],
-            'A2': strategyAssignments[1],
-            'A3': strategyAssignments[2],
-            'A4': strategyAssignments[3],
-            'A5': strategyAssignments[4],
-            'B1': { id: 'B1', title: "The Profit Multiplier Model", difficulty: "Easy", time: "45 Mins", objective: "Tie business metrics to personal finance.", task: "Using a hypothetical $7 net profit per unit, calculate exactly how many units you must sell monthly to cover your (A) Phone bill, (B) Spotify/Netflix subscriptions, and (C) One month's rent/board payment." },
-            'B2': { id: 'B2', title: "The Local Business Pitch", difficulty: "Hard", time: "4 Hours", objective: "Overcome the fear of selling.", task: "Find a local business (e.g., a coffee shop or student service). Draft and deliver a 60-second verbal pitch offering a specific, low-cost service (e.g., 'I can design your next three flyers for $75')." },
-            'B3': { id: 'B3', title: "The Financial Buffer Plan", difficulty: "Medium", time: "2 Hours", objective: "Plan for inventory delays and returns.", task: "If your product costs you $10 to acquire, and 10% of sales result in returns, calculate the minimum cash buffer you need to hold to avoid negative cash flow during your first month of 100 sales." },
-            'C1': { id: 'C1', title: "The Micro-Influencer Outreach", difficulty: "Medium", time: "3 Hours", objective: "Initiate organic marketing partnerships.", task: "Find 5 relevant TikTok/Instagram accounts with 1,000–5,000 followers in your niche. Draft a personalized direct message (DM) pitch offering a free product exchange for a review/post." },
-            'C2': { id: 'C2', title: "The Keyword Spy", difficulty: "Easy", time: "1 Hour", objective: "Identify low-cost traffic sources.", task: "Use Google Keyword Planner or a free SEO tool (like Ubersuggest). Find 5 high-intent, low-competition keywords (long-tail keywords) related to your product that you could rank for organically." },
-            'C3': { id: 'C3', title: "The Testimonial Hunt", difficulty: "Easy", time: "1 Hour", objective: "Validate demand and pricing.", task: "Post a simple design mock-up or detailed description of your product in a relevant Facebook or Reddit community group. Ask: 'Would you buy this, and what would you pay?' Collect 5 genuine pricing responses." },
-            'C4': { id: 'C4', title: "The Landing Page Wireframe", difficulty: "Medium", time: "2 Hours", objective: "Design for conversion.", task: "Sketch a simple, high-converting landing page (on paper or digitally) for your product. Clearly label the location of the testimonial, the main call-to-action (CTA), and the price." },
-        };
-        
-        // --- DATA: QUIZZES ---
-        const quizzes = {
-            strategy: [
-                {
-                    question: "Which business model requires you to buy inventory UPFRONT?",
-                    options: ["Dropshipping", "Amazon FBA", "Affiliate Marketing"],
-                    correct: 1 
-                },
-                {
-                    question: "What is the primary financial risk of Dropshipping?",
-                    options: ["Holding unsold inventory", "Low profit margins", "High storage fees"],
-                    correct: 1
-                }
-            ],
-            funding: [
-                {
-                    question: "In 'Service Flipping', what is your primary role?",
-                    options: ["Performing the service yourself", "Project Management & Quality Control", "Manufacturing goods"],
-                    correct: 1
-                },
-                {
-                    question: "What does calculating the 'Financial Buffer Plan' primarily protect against?",
-                    options: ["High tax rates", "Inventory delays and returns", "Website downtime"],
-                    correct: 1
-                }
-            ],
-            execution: [
-                {
-                    question: "The goal of 'The Review Mining Audit' is to:",
-                    options: ["Find new suppliers", "Identify a core product flaw to fix", "Write a marketing script"],
-                    correct: 1
-                },
-                {
-                    question: "What traffic source should you start with if you have $0 budget?",
-                    options: ["Google Ads", "Organic TikTok content", "Facebook Ads"],
-                    correct: 1
-                }
-            ]
-        };
+    <!-- HOME -->
+    <section id="home" class="card section" style="display:block">
+      <h2>Welcome</h2>
+      <p>This LMS-style site contains Modules, Assignments, Quizzes (with explanatory feedback), Discussions, and more. Replace media placeholders in <code>/media</code> and <code>/images</code> when ready.</p>
+      <div class="grid">
+        <div class="card">
+          <h3>Course Overview</h3>
+          <p>This course guides students through a Learning Plan, a $0 Challenge, an Action Plan, and Reflection & Implementation. Each module contains lessons, activities, assignments, and a short quiz.</p>
+          <ul>
+            <li>Module 1: Learning Plan</li>
+            <li>Module 2: $0 Challenge</li>
+            <li>Module 3: Action Plan</li>
+            <li>Module 4: Reflection & Implementation</li>
+          </ul>
+        </div>
+        <aside class="card">
+          <h3>Quick Checklist</h3>
+          <ol style="margin:0;padding-left:18px">
+            <li>Upload media to <code>/media</code></li>
+            <li>Complete Module lessons</li>
+            <li>Submit assignments</li>
+            <li>Take quizzes (4 quizzes, 20 Qs each)</li>
+          </ol>
+        </aside>
+      </div>
+    </section>
 
-        // --- COMPONENT: QUIZ CARD ---
-        const QuizModule = ({ title, questions, moduleId }) => {
-            const [currentQ, setCurrentQ] = useState(0);
-            const [score, setScore] = useState(0);
-            const [showResult, setShowResult] = useState(false);
-            const [selectedOption, setSelectedOption] = useState(null);
-            const [isCorrect, setIsCorrect] = useState(null);
-            
-            // Reset state when module changes
-            useEffect(() => {
-                resetQuiz();
-            }, [moduleId]);
+    <!-- ANNOUNCEMENTS -->
+    <section id="announcements" class="card section" style="display:none">
+      <h2>Announcements</h2>
+      <ul>
+        <li>Project due date: Dec 20, 2025</li>
+        <li>Upload media files to <code>/media</code> before submission</li>
+        <li>Contact instructor for extensions</li>
+      </ul>
+    </section>
 
+    <!-- MODULES (Canvas-style module list with lessons inside) -->
+    <section id="modules" class="card section" style="display:none">
+      <h2>Modules</h2>
 
-            const handleAnswer = (index) => {
-                setSelectedOption(index);
-                const correct = index === questions[currentQ].correct;
-                setIsCorrect(correct);
-                if (correct) setScore(score + 1);
-                
-                setTimeout(() => {
-                    if (currentQ < questions.length - 1) {
-                        setCurrentQ(currentQ + 1);
-                        setSelectedOption(null);
-                        setIsCorrect(null);
-                    } else {
-                        setShowResult(true);
-                    }
-                }, 1500);
-            };
-
-            const resetQuiz = () => {
-                setCurrentQ(0);
-                setScore(0);
-                setShowResult(false);
-                setSelectedOption(null);
-                setIsCorrect(null);
-            };
-
-            return (
-                <div className="bg-white rounded-xl shadow-lg border-t-4 border-indigo-600 p-6 my-8">
-                    <div className="flex items-center gap-2 mb-4">
-                        <i data-lucide="help-circle" className="text-indigo-600"></i>
-                        <h3 className="font-bold text-xl text-slate-800">{title}</h3>
-                    </div>
-
-                    {!showResult ? (
-                        <div>
-                            <div className="mb-4 text-sm font-semibold text-slate-400 uppercase tracking-wide">
-                                Question {currentQ + 1} of {questions.length}
-                            </div>
-                            <h4 className="text-lg font-medium mb-6">{questions[currentQ].question}</h4>
-                            <div className="space-y-3">
-                                {questions[currentQ].options.map((opt, idx) => (
-                                    <button
-                                        key={idx}
-                                        onClick={() => handleAnswer(idx)}
-                                        disabled={selectedOption !== null}
-                                        className={`w-full text-left p-4 rounded-lg border transition-all ${
-                                            selectedOption === idx 
-                                                ? (isCorrect ? 'bg-green-100 border-green-500 text-green-800' : 'bg-red-100 border-red-500 text-red-800')
-                                                : 'hover:bg-slate-50 border-slate-200'
-                                        }`}
-                                    >
-                                        {opt}
-                                        {selectedOption === idx && (
-                                            <span className="float-right font-bold">{isCorrect ? '✓ Correct' : '✗ Incorrect'}</span>
-                                        )}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="text-center py-6">
-                            <div className="text-4xl font-bold text-indigo-600 mb-2">{score} / {questions.length}</div>
-                            <p className="text-slate-600 mb-6">
-                                {score === questions.length ? "Perfect Score! You're ready for the next step." : "Good effort. Review the material and try again."}
-                            </p>
-                            <button onClick={resetQuiz} className="bg-slate-900 text-white px-6 py-2 rounded-lg hover:bg-slate-800">Retake Quiz</button>
-                        </div>
-                    )}
-                </div>
-            );
-        };
-
-        // --- COMPONENT: ASSIGNMENT CARD ---
-        const AssignmentCard = ({ assignment, onClick }) => (
-            <div 
-                className="bg-amber-50 rounded-xl p-6 border border-amber-200 my-6 cursor-pointer transition transform hover:shadow-lg hover:scale-[1.01] active:scale-[0.99]"
-                onClick={() => onClick(assignment.id)}
-            >
-                <div className="flex justify-between items-start mb-4">
-                    <div className="flex items-center gap-2">
-                        <div className="bg-amber-500 text-white p-2 rounded-lg">
-                            <i data-lucide="clipboard-list" className="w-5 h-5"></i>
-                        </div>
-                        <h3 className="font-bold text-lg text-amber-900">{assignment.title}</h3>
-                    </div>
-                    <div className="flex gap-2 text-xs font-bold uppercase">
-                        <span className="bg-white text-slate-600 px-2 py-1 rounded border shadow-sm">Diff: {assignment.difficulty}</span>
-                        <span className="bg-white text-slate-600 px-2 py-1 rounded border shadow-sm">Time: {assignment.time}</span>
-                    </div>
-                </div>
-                <div className="text-slate-700 text-sm leading-relaxed">
-                    <strong>Objective:</strong> {assignment.objective}
-                </div>
-                <p className="text-xs text-amber-700 mt-2 font-semibold">Click for full details and submission.</p>
+      <!-- Module 1 -->
+      <div class="module" aria-expanded="false">
+        <h3 onclick="toggleModule(this)">Module 1 — Learning Plan <span style="font-size:12px;color:#557f88">(2 lessons)</span></h3>
+        <div class="content">
+          <div class="lesson">
+            <h4>Lesson 1.1 — What is a Learning Plan?</h4>
+            <p>A learning plan helps you inventory skills, prioritize goals, and build an actionable timeline.</p>
+            <div class="assignment-box">
+              <label><strong>Activity:</strong> List 3 strengths and 3 weaknesses. Explain one goal tied to a strength.</label>
+              <textarea id="mlp_l1"></textarea>
+              <div style="display:flex;gap:8px;align-items:center">
+                <button onclick="submitAssignment('mlp_l1')">Save</button>
+                <button class="secondary" onclick="exportAssignment('mlp_l1')">Export</button>
+                <div id="mlp_l1_status" style="margin-left:10px;color:#556676"></div>
+              </div>
             </div>
-        );
+          </div>
 
-        // --- COMPONENT: ASSIGNMENT DETAIL MODAL ---
-        const AssignmentDetailModal = ({ assignment, onClose }) => {
-            const [notes, setNotes] = useState('');
-            const [isCompleted, setIsCompleted] = useState(false);
-
-            if (!assignment) return null;
-
-            const handleComplete = () => {
-                // In a real app, this would save the notes and mark as complete in Firestore.
-                console.log(`Assignment ${assignment.id} completed. Notes: ${notes}`);
-                setIsCompleted(true);
-                // Optionally close after a delay or success message
-                setTimeout(onClose, 2500);
-            };
-
-            return (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4">
-                    <div className="modal-content bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-                        <div className="p-6 border-b border-slate-200 flex justify-between items-center">
-                            <h2 className="text-2xl font-bold text-amber-900">{assignment.title}</h2>
-                            <button onClick={onClose} className="text-slate-400 hover:text-slate-800 transition">
-                                <i data-lucide="x" className="w-6 h-6"></i>
-                            </button>
-                        </div>
-                        
-                        <div className="p-6 space-y-4">
-                            <div className="flex gap-4 text-sm font-bold uppercase">
-                                <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full">Difficulty: {assignment.difficulty}</span>
-                                <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full">Time: {assignment.time}</span>
-                            </div>
-
-                            <div>
-                                <h3 className="text-lg font-semibold text-slate-800 mt-3 mb-1">Objective</h3>
-                                <p className="text-slate-600 border-l-4 border-amber-400 pl-3 py-1">{assignment.objective}</p>
-                            </div>
-
-                            <div>
-                                <h3 className="text-lg font-semibold text-slate-800 mt-3 mb-1">Task Details</h3>
-                                <p className="text-slate-700 leading-relaxed">{assignment.task}</p>
-                            </div>
-                            
-                            <hr className="my-4"/>
-
-                            <div>
-                                <h3 className="text-lg font-semibold text-slate-800 mb-2">Your Notes / Results</h3>
-                                <textarea
-                                    value={notes}
-                                    onChange={(e) => setNotes(e.target.value)}
-                                    rows="6"
-                                    placeholder="Enter your findings, metrics, script, or wireframe notes here..."
-                                    className="w-full p-3 border border-slate-300 rounded-lg focus:ring-amber-500 focus:border-amber-500 outline-none"
-                                ></textarea>
-                            </div>
-
-                        </div>
-
-                        <div className="p-6 bg-slate-50 border-t border-slate-200 flex justify-end">
-                            {isCompleted ? (
-                                <div className="flex items-center text-green-600 font-bold">
-                                    <i data-lucide="check-circle" className="w-5 h-5 mr-2"></i>
-                                    Assignment Logged!
-                                </div>
-                            ) : (
-                                <button 
-                                    onClick={handleComplete}
-                                    className="bg-amber-600 text-white px-6 py-3 rounded-full font-bold hover:bg-amber-700 transition transform hover:scale-[1.03] shadow-lg"
-                                >
-                                    Mark as Complete & Save Notes
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        // --- COMPONENT: NAVIGATION ---
-        const Navigation = ({ activeTab, setActiveTab }) => {
-            const tabs = [
-                { id: 'home', label: 'Home' },
-                { id: 'strategy', label: '1. Strategy' },
-                { id: 'funding', label: '2. Capital' },
-                { id: 'execution', label: '3. Execution' },
-                { id: 'simulation', label: '4. Simulation' }
-            ];
-
-            return (
-                <nav className="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
-                    <div className="max-w-6xl mx-auto px-4">
-                        <div className="flex justify-between items-center h-16">
-                            <div className="font-bold text-xl tracking-wider text-amber-500 flex items-center gap-2">
-                                <i data-lucide="graduation-cap"></i>
-                                CAMPUS<span className="text-white">TO</span>COMMERCE
-                            </div>
-                            <div className="hidden md:flex space-x-1">
-                                {tabs.map(tab => (
-                                    <button 
-                                        key={tab.id}
-                                        onClick={() => setActiveTab(tab.id)}
-                                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${activeTab === tab.id ? 'bg-amber-500 text-slate-900 font-bold' : 'text-slate-300 hover:bg-slate-800'}`}
-                                    >
-                                        {tab.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </nav>
-            );
-        };
-
-        // --- COMPONENT: MULTIMEDIA ---
-        const MultimediaSlot = ({ type, title, description }) => (
-            <div className="my-8 p-6 bg-white rounded-xl shadow-md border-l-4 border-blue-500">
-                <div className="flex items-center gap-2 mb-3">
-                    <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded uppercase">{type} Resource</span>
-                    <h3 className="font-bold text-lg">{title}</h3>
-                </div>
-                <p className="text-slate-600 mb-4 text-sm">{description}</p>
-                <div className="w-full h-64 bg-slate-100 rounded-lg flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-300">
-                    <i data-lucide={type === 'Video' ? 'video' : type === 'Audio' ? 'headphones' : 'box'} className="w-12 h-12 mb-2"></i>
-                    <span>{type} Placeholder</span>
-                    <span className="text-xs mt-1">(Replace with &lt;{type.toLowerCase()}&gt; tag in GitHub)</span>
-                </div>
+          <div class="lesson">
+            <h4>Lesson 1.2 — Setting SMART Goals</h4>
+            <p>Set one Specific, Measurable, Achievable, Relevant, and Time-bound goal for two weeks.</p>
+            <div class="assignment-box">
+              <label><strong>Activity:</strong> Write your SMART goal and three mini-tasks to achieve it.</label>
+              <textarea id="mlp_l2"></textarea>
+              <div style="display:flex;gap:8px;align-items:center">
+                <button onclick="submitAssignment('mlp_l2')">Save</button>
+                <button class="secondary" onclick="exportAssignment('mlp_l2')">Export</button>
+                <div id="mlp_l2_status" style="margin-left:10px;color:#556676"></div>
+              </div>
             </div>
-        );
+          </div>
 
-        // --- COMPONENT: CALCULATOR ---
-        const ProfitCalculator = () => {
-            const [price, setPrice] = useState(30);
-            const [cost, setCost] = useState(10);
-            const [adSpend, setAdSpend] = useState(5);
-            
-            // Ensure inputs are treated as numbers
-            const p = Number(price) || 0;
-            const c = Number(cost) || 0;
-            const a = Number(adSpend) || 0;
+          <div style="margin-top:8px">
+            <small>Module quiz: please go to <strong>Quizzes</strong> → Quiz 1 (Learning Plan)</small>
+          </div>
+        </div>
+      </div>
 
-            const profit = p - c - a;
-            const margin = (p > 0 ? ((profit / p) * 100) : 0).toFixed(1);
+      <!-- Module 2 -->
+      <div class="module">
+        <h3 onclick="toggleModule(this)">Module 2 — $0 Challenge <span style="font-size:12px;color:#557f88">(3 lessons + activity)</span></h3>
+        <div class="content">
+          <div class="lesson">
+            <h4>Lesson 2.1 — Observation</h4>
+            <p>Visit a store or virtual catalog and list items you can repurpose or ideas for zero-cost solutions.</p>
+            <div class="assignment-box">
+              <label>List 5 items and how they'd help solve a campus problem:</label>
+              <textarea id="mlc_l1"></textarea>
+              <div style="display:flex;gap:8px;align-items:center">
+                <button onclick="submitAssignment('mlc_l1')">Save</button>
+                <button class="secondary" onclick="exportAssignment('mlc_l1')">Export</button>
+                <div id="mlc_l1_status" style="margin-left:10px;color:#556676"></div>
+              </div>
+            </div>
+          </div>
 
-            return (
-                <div className="bg-white p-6 rounded-xl shadow-lg mt-6 border border-slate-200">
-                    <h3 className="text-xl font-bold mb-4 text-slate-800 flex items-center gap-2">
-                        <i data-lucide="calculator" className="text-emerald-600"></i> Unit Economics Simulator
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="space-y-4">
-                            <div>
-                                <label className="text-xs font-bold uppercase text-slate-500">Sales Price ($)</label>
-                                <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full mt-1 p-3 rounded border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none" />
-                            </div>
-                            <div>
-                                <label className="text-xs font-bold uppercase text-slate-500">Product Cost ($)</label>
-                                <input type="number" value={cost} onChange={(e) => setCost(e.target.value)} className="w-full mt-1 p-3 rounded border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none" />
-                            </div>
-                            <div>
-                                <label className="text-xs font-bold uppercase text-slate-500">Ad Cost Per Sale ($)</label>
-                                <input type="number" value={adSpend} onChange={(e) => setAdSpend(e.target.value)} className="w-full mt-1 p-3 rounded border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none" />
-                            </div>
-                        </div>
-                        <div className="bg-slate-900 text-white rounded-xl p-6 flex flex-col justify-center items-center text-center">
-                            <div className="text-sm text-slate-400 uppercase tracking-wide mb-2">Net Profit Per Unit</div>
-                            <div className={`text-5xl font-extrabold ${profit > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                ${profit}
-                            </div>
-                            <div className="mt-4 pt-4 border-t border-slate-700 w-full flex justify-between px-4 text-sm">
-                                <span>Margin:</span>
-                                <span className={Number(margin) >= 20 ? 'text-green-400' : 'text-yellow-400'}>{margin}%</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
+          <div class="lesson">
+            <h4>Lesson 2.2 — Prototype Quickly</h4>
+            <p>Create a simple mockup (Canva, phone photo, Google Doc). Focus on communicating the idea more than polish.</p>
+            <div class="assignment-box">
+              <label>Describe your prototype and resources used:</label>
+              <textarea id="mlc_l2"></textarea>
+              <div style="display:flex;gap:8px;align-items:center">
+                <button onclick="submitAssignment('mlc_l2')">Save</button>
+                <button class="secondary" onclick="exportAssignment('mlc_l2')">Export</button>
+                <div id="mlc_l2_status" style="margin-left:10px;color:#556676"></div>
+              </div>
+            </div>
+          </div>
 
-        // --- MAIN APP ---
-        const App = () => {
-            const [activeTab, setActiveTab] = useState('home');
-            const [activeAssignmentId, setActiveAssignmentId] = useState(null); // State to hold the ID of the assignment to show in the modal
-            
-            const activeAssignment = activeAssignmentId ? allAssignments[activeAssignmentId] : null;
+          <div class="lesson">
+            <h4>Lesson 2.3 — Test & Reflect</h4>
+            <p>Share your prototype with 1–3 people and collect feedback.</p>
+            <div class="assignment-box">
+              <label>What feedback did you get? How will you change it?</label>
+              <textarea id="mlc_feedback"></textarea>
+              <div style="display:flex;gap:8px;align-items:center">
+                <button onclick="submitAssignment('mlc_feedback')">Save</button>
+                <button class="secondary" onclick="exportAssignment('mlc_feedback')">Export</button>
+                <div id="mlc_feedback_status" style="margin-left:10px;color:#556676"></div>
+              </div>
+            </div>
+          </div>
 
-            useEffect(() => {
-                // Initialize Icons every time the tab changes or modal state changes
-                lucide.createIcons();
-            }, [activeTab, activeAssignmentId]);
+          <div>
+            <h4>Activity — Drag & Match Tools</h4>
+            <div style="display:flex;gap:12px;align-items:flex-start;margin-top:8px">
+              <div style="flex:1">
+                <div class="draggable" draggable="true" id="d_canva">Canva — Visuals</div>
+                <div class="draggable" draggable="true" id="d_docs" style="margin-top:8px">Google Docs — Guides</div>
+                <div class="draggable" draggable="true" id="d_phone" style="margin-top:8px">Phone Camera — Photos</div>
+              </div>
+              <div style="flex:1">
+                <div class="dropzone" id="drop_visuals"><strong>Visuals & Mockups</strong></div>
+                <div class="dropzone" id="drop_text" style="margin-top:8px"><strong>Text & Guides</strong></div>
+              </div>
+            </div>
+            <div style="margin-top:8px">
+              <button onclick="checkDrag()">Check Activity</button>
+              <div id="drag_result" style="margin-top:8px"></div>
+            </div>
+          </div>
 
-            // Handler to open the modal
-            const openAssignment = (id) => {
-                setActiveAssignmentId(id);
-            };
+          <div style="margin-top:8px"><small>Module quiz: go to <strong>Quizzes</strong> → Quiz 2 ($0 Challenge)</small></div>
+        </div>
+      </div>
 
-            // Handler to close the modal
-            const closeAssignment = () => {
-                setActiveAssignmentId(null);
-            };
+      <!-- Module 3 -->
+      <div class="module">
+        <h3 onclick="toggleModule(this)">Module 3 — Action Plan <span style="font-size:12px;color:#557f88">(2 lessons)</span></h3>
+        <div class="content">
+          <div class="lesson">
+            <h4>Lesson 3.1 — Build the Action Steps</h4>
+            <p>Create 5 small steps to move your prototype forward in the next week.</p>
+            <div class="assignment-box">
+              <label>List 5 action steps and expected outcomes:</label>
+              <textarea id="mla_l1"></textarea>
+              <div style="display:flex;gap:8px;align-items:center">
+                <button onclick="submitAssignment('mla_l1')">Save</button>
+                <button class="secondary" onclick="exportAssignment('mla_l1')">Export</button>
+                <div id="mla_l1_status" style="margin-left:10px;color:#556676"></div>
+              </div>
+            </div>
+          </div>
 
+          <div class="lesson">
+            <h4>Lesson 3.2 — Measure & Iterate</h4>
+            <p>Decide on two metrics you will track and how you’ll collect them.</p>
+            <div class="assignment-box">
+              <label>Specify your metrics and data sources:</label>
+              <textarea id="mla_l2"></textarea>
+              <div style="display:flex;gap:8px;align-items:center">
+                <button onclick="submitAssignment('mla_l2')">Save</button>
+                <button class="secondary" onclick="exportAssignment('mla_l2')">Export</button>
+                <div id="mla_l2_status" style="margin-left:10px;color:#556676"></div>
+              </div>
+            </div>
+          </div>
 
-            return (
-                <div className="min-h-screen flex flex-col bg-slate-50">
-                    <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
-                    
-                    {/* Render the Assignment Modal if an assignment is active */}
-                    <AssignmentDetailModal 
-                        assignment={activeAssignment} 
-                        onClose={closeAssignment} 
-                    />
+          <div style="margin-top:8px"><small>Module quiz: go to <strong>Quizzes</strong> → Quiz 3 (Action Plan)</small></div>
+        </div>
+      </div>
 
-                    <main className="flex-grow max-w-5xl mx-auto px-4 py-8 w-full">
-                        
-                        {/* HOME TAB */}
-                        {activeTab === 'home' && (
-                            <div className="fade-in space-y-10">
-                                <div className="text-center py-16 bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl shadow-2xl text-white relative overflow-hidden">
-                                    <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/graphy.png')]"></div>
-                                    <div className="relative z-10 px-4">
-                                        <h1 className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight">
-                                            CAMPUS <span className="text-amber-500">TO</span> COMMERCE
-                                        </h1>
-                                        <p className="text-xl md:text-2xl text-slate-300 max-w-2xl mx-auto font-light leading-relaxed">
-                                            The student's guide to bootstrapping a lean e-commerce venture with minimal capital.
-                                        </p>
-                                        <button onClick={() => setActiveTab('strategy')} className="mt-8 bg-amber-500 text-slate-900 px-8 py-4 rounded-full font-bold text-lg hover:bg-amber-400 transition transform hover:scale-105 shadow-lg">
-                                            Start The Course
-                                        </button>
-                                    </div>
-                                </div>
+      <!-- Module 4 -->
+      <div class="module">
+        <h3 onclick="toggleModule(this)">Module 4 — Reflection & Implementation <span style="font-size:12px;color:#557f88">(3 lessons)</span></h3>
+        <div class="content">
+          <div class="lesson">
+            <h4>Lesson 4.1 — Reflect</h4>
+            <p>Summarize three lessons learned and link to at least one evidence-based reference (use placeholder links if needed).</p>
+            <div class="assignment-box">
+              <label>Reflection (3–5 sentences each):</label>
+              <textarea id="mlr_l1"></textarea>
+              <div style="display:flex;gap:8px;align-items:center">
+                <button onclick="submitAssignment('mlr_l1')">Save</button>
+                <button class="secondary" onclick="exportAssignment('mlr_l1')">Export</button>
+                <div id="mlr_l1_status" style="margin-left:10px;color:#556676"></div>
+              </div>
+            </div>
+          </div>
 
-                                <div className="grid md:grid-cols-3 gap-6">
-                                    <div className="bg-white p-6 rounded-xl shadow border border-slate-100">
-                                        <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4"><i data-lucide="book-open"></i></div>
-                                        <h3 className="font-bold text-lg mb-2">Learn Strategy</h3>
-                                        <p className="text-slate-600 text-sm">Understand Dropshipping vs. FBA models and choose your path.</p>
-                                    </div>
-                                    <div className="bg-white p-6 rounded-xl shadow border border-slate-100">
-                                        <div className="w-10 h-10 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4"><i data-lucide="dollar-sign"></i></div>
-                                        <h3 className="font-bold text-lg mb-2">Generate Funds</h3>
-                                        <p className="text-slate-600 text-sm">Discover "Garage Arbitrage" and methods to raise your first $1,000.</p>
-                                    </div>
-                                    <div className="bg-white p-6 rounded-xl shadow border border-slate-100">
-                                        <div className="w-10 h-10 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mb-4"><i data-lucide="check-square"></i></div>
-                                        <h3 className="font-bold text-lg mb-2">Test Your Skills</h3>
-                                        <p className="text-slate-600 text-sm">Interactive quizzes and real-world assignments included.</p>
-                                    </div>
-                                </div>
-                                <MultimediaSlot type="Video" title="Course Introduction" description="A 2-minute overview of the current E-Commerce landscape for students." />
-                            </div>
-                        )}
+          <div class="lesson">
+            <h4>Lesson 4.2 — 1-Week Implementation Plan</h4>
+            <p>Create a timeline with three milestones you will complete this week.</p>
+            <div class="assignment-box">
+              <label>Implementation Plan:</label>
+              <textarea id="mlr_l2"></textarea>
+              <div style="display:flex;gap:8px;align-items:center">
+                <button onclick="submitAssignment('mlr_l2')">Save</button>
+                <button class="secondary" onclick="exportAssignment('mlr_l2')">Export</button>
+                <div id="mlr_l2_status" style="margin-left:10px;color:#556676"></div>
+              </div>
+            </div>
+          </div>
 
-                        {/* STRATEGY TAB (Module 1: Product & Sourcing Focus) */}
-                        {activeTab === 'strategy' && (
-                            <div className="fade-in space-y-8">
-                                <h2 className="text-3xl font-bold text-slate-900 border-l-8 border-amber-500 pl-4">Module 1: Strategic Analysis & Product Selection</h2>
-                                
-                                <div className="grid md:grid-cols-2 gap-6">
-                                    <div className="bg-white rounded-xl shadow-md p-6 border-t-4 border-blue-600">
-                                        <h3 className="text-2xl font-bold text-blue-900 mb-2">Dropshipping</h3>
-                                        <p className="text-sm text-slate-500 mb-4 font-mono">MODEL: LOW RISK / LOW MARGIN</p>
-                                        <p className="text-slate-700 mb-4">You act as the middleman. You sell the product first, then order it from the supplier.</p>
-                                        <ul className="space-y-2 text-sm">
-                                            <li className="flex items-center gap-2"><i data-lucide="check" className="w-4 h-4 text-green-500"></i> No Inventory Cost</li>
-                                            <li className="flex items-center gap-2"><i data-lucide="x" className="w-4 h-4 text-red-500"></i> Shipping takes 10-20 days</li>
-                                        </ul>
-                                    </div>
-                                    <div className="bg-white rounded-xl shadow-md p-6 border-t-4 border-amber-500">
-                                        <h3 className="text-2xl font-bold text-amber-900 mb-2">Amazon FBA</h3>
-                                        <p className="text-sm text-slate-500 mb-4 font-mono">MODEL: MED RISK / HIGH VOLUME</p>
-                                        <p className="text-slate-700 mb-4">You buy bulk inventory and ship it to Amazon. They handle shipping (Prime).</p>
-                                        <ul className="space-y-2 text-sm">
-                                            <li className="flex items-center gap-2"><i data-lucide="check" className="w-4 h-4 text-green-500"></i> 2-Day Prime Shipping</li>
-                                            <li className="flex items-center gap-2"><i data-lucide="x" className="w-4 h-4 text-red-500"></i> Requires $1k+ Upfront</li>
-                                        </ul>
-                                    </div>
-                                </div>
+          <div class="lesson">
+            <h4>Lesson 4.3 — Peer Feedback Simulation</h4>
+            <p>Write two constructive comments you could give a peer about their action plan.</p>
+            <div class="assignment-box">
+              <label>Peer comments:</label>
+              <textarea id="mlr_l3"></textarea>
+              <div style="display:flex;gap:8px;align-items:center">
+                <button onclick="submitAssignment('mlr_l3')">Save</button>
+                <button class="secondary" onclick="exportAssignment('mlr_l3')">Export</button>
+                <div id="mlr_l3_status" style="margin-left:10px;color:#556676"></div>
+              </div>
+            </div>
+          </div>
 
-                                <h3 className="text-2xl font-bold text-slate-900 mt-10 border-b pb-2">Field Assignments (5)</h3>
+          <div style="margin-top:8px"><small>Module quiz: go to <strong>Quizzes</strong> → Quiz 4 (Multimedia & Assessment)</small></div>
+        </div>
+      </div>
+    </section>
 
-                                {/* Render assignments from the new, reordered data structure */}
-                                {strategyAssignments.map(assignment => (
-                                    <AssignmentCard 
-                                        key={assignment.id} 
-                                        assignment={assignment} 
-                                        onClick={openAssignment} 
-                                    />
-                                ))}
+    <!-- ASSIGNMENTS page (overview of saved assignments) -->
+    <section id="assignmentsPage" class="card section" style="display:none">
+      <h2>Assignments — Overview</h2>
+      <p>All assignments you saved are stored locally in your browser. Use export to copy to LMS or download.</p>
+      <div id="assignmentsList"></div>
+      <div style="margin-top:12px"><button onclick="exportAll()">Export All as JSON</button></div>
+    </section>
 
-                                <QuizModule title="Strategy Knowledge Check" questions={quizzes.strategy} moduleId="strategy" />
-                            </div>
-                        )}
+    <!-- QUIZZES page (moved to 5th) -->
+    <section id="quizzesPage" class="card section" style="display:none">
+      <h2>Quizzes</h2>
+      <p>Choose a quiz below. Each quiz contains 20 multiple-choice questions and provides explanatory feedback for every option.</p>
 
-                        {/* FUNDING TAB (Module 2: Capital Generation & Financial Planning) */}
-                        {activeTab === 'funding' && (
-                            <div className="fade-in space-y-8">
-                                <h2 className="text-3xl font-bold text-slate-900 border-l-8 border-green-500 pl-4">Module 2: Capital Generation & Financial Planning</h2>
-                                <p className="text-lg text-slate-600">The #1 excuse is "I have no money." Here is how to fix that this weekend.</p>
+      <div class="quiz-list" id="quizCards"></div>
 
-                                <MultimediaSlot type="Audio" title="Student Success Story" description="Interview with a student who turned $50 into $5,000 using service flipping." />
+      <hr>
 
-                                <div className="space-y-4">
-                                    <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
-                                        <h3 className="font-bold text-lg text-green-700 mb-2">Method A: The Garage Arbitrage</h3>
-                                        <p className="text-slate-600">Use the <strong>eBay App</strong> to scan barcodes at Goodwill or Garage Sales. Look for sealed electronics, textbooks, or board games. If the completed listings on eBay show a profit of >$20, buy it and flip it online.</p>
-                                    </div>
-                                    <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
-                                        <h3 className="font-bold text-lg text-green-700 mb-2">Method B: Service Flipping</h3>
-                                        <p className="text-slate-600">List a service on Upwork (e.g., "Logo Design" for $150). When you get an order, pay a freelancer on Fiverr $40 to do the work. You keep the $110 spread for managing the project.</p>
-                                    </div>
-                                </div>
-                                
-                                <h3 className="text-2xl font-bold text-slate-900 mt-10 border-b pb-2">Field Assignments (3)</h3>
+      <div id="quizArea" style="margin-top:12px"></div>
+    </section>
 
-                                {/* Assignment 8: The Profit Multiplier Model */}
-                                <AssignmentCard assignment={allAssignments['B1']} onClick={openAssignment} />
+    <!-- DISCUSSIONS -->
+    <section id="discussions" class="card section" style="display:none">
+      <h2>Discussions</h2>
+      <p>Student discussion area (lightweight): add a comment and it will appear below.</p>
+      <div>
+        <textarea id="discussionInput" rows="3" placeholder="Write a question or reply..."></textarea><br>
+        <button onclick="postDiscussion()">Post</button>
+      </div>
+      <div id="discussionList" style="margin-top:12px"></div>
+    </section>
 
-                                {/* Assignment 10: The Local Business Pitch */}
-                                <AssignmentCard assignment={allAssignments['B2']} onClick={openAssignment} />
-                                
-                                {/* Assignment 12: The Financial Buffer Plan */}
-                                <AssignmentCard assignment={allAssignments['B3']} onClick={openAssignment} />
+    <!-- GRADES -->
+    <section id="gradesPage" class="card section" style="display:none">
+      <h2>Grades</h2>
+      <p>Grade tracker (assignments auto-mark 100% on submission for demo; quizzes scored based on answers)</p>
+      <div id="gradesList"></div>
+      <div style="margin-top:12px" id="gradesSummary"></div>
+    </section>
 
-                                <QuizModule title="Funding Knowledge Check" questions={quizzes.funding} moduleId="funding" />
-                            </div>
-                        )}
+    <!-- PAGES, FILES, SYLLABUS placeholders -->
+    <section id="pages" class="card section" style="display:none"><h2>Pages</h2><div class="placeholder">Pages content (upload PDFs or lesson pages)</div></section>
+    <section id="files" class="card section" style="display:none"><h2>Files</h2><div class="placeholder">Files (upload assets to repo/media or link externally)</div></section>
+    <section id="syllabus" class="card section" style="display:none"><h2>Syllabus</h2><div class="placeholder">Syllabus PDF placeholder</div></section>
 
-                        {/* EXECUTION TAB (Module 3: Marketing & Validation) */}
-                        {activeTab === 'execution' && (
-                            <div className="fade-in space-y-8">
-                                <h2 className="text-3xl font-bold text-slate-900 border-l-8 border-purple-500 pl-4">Module 3: Execution, Validation & Scaling</h2>
-                                
-                                <div className="bg-slate-100 p-6 rounded-xl">
-                                    <h3 className="font-bold text-xl mb-4">Step-by-Step Launch Checklist</h3>
-                                    <ol className="list-decimal pl-5 space-y-3 text-slate-700">
-                                        <li><strong>Niche Selection:</strong> Choose a hobby-based niche (Golf, Pets, Hiking).</li>
-                                        <li><strong>Sourcing:</strong> Use AliExpress for testing (Dropshipping) or Alibaba for bulk (FBA).</li>
-                                        <li><strong>Platform:</strong> Shopify ($29/mo) is best for brand building. Amazon Seller Central ($39/mo) is best for organic traffic.</li>
-                                        <li><strong>Traffic:</strong> Start with organic TikTok content (0 cost) before moving to Paid Ads.</li>
-                                    </ol>
-                                </div>
+  </main>
 
-                                <MultimediaSlot type="3D" title="Logistics Map" description="Interactive 3D view of the supply chain journey." />
+<script>
+/* ---------- Sidebar navigation ---------- */
+document.querySelectorAll('.nav a').forEach(a=>{
+  a.addEventListener('click', (e)=>{
+    e.preventDefault();
+    const target = a.getAttribute('data-target');
+    document.querySelectorAll('.section').forEach(s => s.style.display='none');
+    const el = document.getElementById(target);
+    if(el) el.style.display='block';
+    document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
+    a.classList.add('active');
+    // on 'assignmentsPage' load assignments list
+    if(target==='assignmentsPage') renderAssignmentsList();
+    if(target==='gradesPage') renderGrades();
+  });
+});
 
-                                <h3 className="text-2xl font-bold text-slate-900 mt-10 border-b pb-2">Field Assignments (4)</h3>
-                                
-                                {/* Assignment 5: The Micro-Influencer Outreach (Original Execution Assignment) */}
-                                <AssignmentCard assignment={allAssignments['C1']} onClick={openAssignment} />
-                                
-                                {/* Assignment 6: The Keyword Spy (Original Execution Assignment) */}
-                                <AssignmentCard assignment={allAssignments['C2']} onClick={openAssignment} />
+/* ---------- Toggle modules open/close ---------- */
+function toggleModule(el){
+  const box = el.parentElement;
+  const content = box.querySelector('.content');
+  content.style.display = (content.style.display==='block')?'none':'block';
+}
 
-                                {/* Assignment 11: The Testimonial Hunt (Original Execution Assignment) */}
-                                <AssignmentCard assignment={allAssignments['C3']} onClick={openAssignment} />
-                                
-                                {/* Assignment 7: The Landing Page Wireframe (Original Execution Assignment) */}
-                                <AssignmentCard assignment={allAssignments['C4']} onClick={openAssignment} />
+/* ---------- Assignment storage (independent) ---------- */
+const ASSIGN_PREFIX = 'c2c_assign_';
+function submitAssignment(id){
+  const val = document.getElementById(id).value.trim();
+  const statusEl = document.getElementById(id+'_status');
+  if(!val){ statusEl.textContent='Please write something.'; return; }
+  localStorage.setItem(ASSIGN_PREFIX+id, val);
+  statusEl.textContent='Saved locally at '+new Date().toLocaleString();
+  updateAssignmentStatus(id);
+}
+function exportAssignment(id){
+  const val = localStorage.getItem(ASSIGN_PREFIX+id) || document.getElementById(id).value;
+  const blob = new Blob([val], {type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download = id+'.txt'; document.body.appendChild(a); a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+function renderAssignmentsList(){
+  const container = document.getElementById('assignmentsList');
+  container.innerHTML='';
+  const keys = Object.keys(localStorage).filter(k=>k.startsWith(ASSIGN_PREFIX));
+  if(keys.length===0){ container.innerHTML='<div class="card">No saved assignments yet.</div>'; return; }
+  keys.forEach(k=>{
+    const id = k.replace(ASSIGN_PREFIX,'');
+    const val = localStorage.getItem(k);
+    const div = document.createElement('div');
+    div.className='card';
+    div.innerHTML = `<strong>${id}</strong><pre style="white-space:pre-wrap">${escapeHtml(val)}</pre>
+      <div style="display:flex;gap:8px"><button onclick="downloadKey('${k}','${id}')">Download</button>
+      <button onclick="deleteAssignment('${k}','${id}')">Delete</button></div>`;
+    container.appendChild(div);
+  });
+}
+function downloadKey(k,id){
+  const val = localStorage.getItem(k);
+  const blob = new Blob([val], {type:'text/plain'}); const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download = id+'.txt'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+function deleteAssignment(k,id){
+  if(!confirm('Delete '+id+'?')) return;
+  localStorage.removeItem(k);
+  renderAssignmentsList();
+}
+function exportAll(){
+  const data = {};
+  Object.keys(localStorage).filter(k=>k.startsWith(ASSIGN_PREFIX)).forEach(k=> data[k]=localStorage.getItem(k));
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='c2c_assignments.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
 
-                                
-                                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg mt-8">
-                                    <h4 className="font-bold text-yellow-800">⚠️ Beginner Trap</h4>
-                                    <p className="text-sm text-yellow-700">Do not spend months building a logo or website. Spend your time finding a <strong>Winning Product</strong>. The market cares about the product, not your logo.</p>
-                                </div>
-                                <QuizModule title="Execution Knowledge Check" questions={quizzes.execution} moduleId="execution" />
-                            </div>
-                        )}
+/* ---------- assignment status & grade tracker ---------- */
+const moduleMap = {
+  mlp_l1:1, mlp_l2:1,
+  mlc_l1:2, mlc_l2:2, mlc_feedback:2, mlc_act:2,
+  mla_l1:3, mla_l2:3, mla_act:3,
+  mlr_l1:4, mlr_l2:4, mlr_l3:4
+};
+function updateAssignmentStatus(id){
+  const mod = moduleMap[id];
+  if(!mod) return;
+  document.getElementById('status'+mod).textContent='Completed';
+  document.getElementById('grade'+mod).textContent='100%';
+  renderGrades();
+}
+function renderGrades(){
+  const gradesList = document.getElementById('gradesList');
+  gradesList.innerHTML = '';
+  for(let i=1;i<=4;i++){
+    const g = document.getElementById('grade'+i).innerText || '0%';
+    const li = document.createElement('div'); li.innerHTML = `<strong>Module ${i}:</strong> ${g}`; gradesList.appendChild(li);
+  }
+  // summary
+  const s = document.getElementById('gradesSummary');
+  const total = [...Array(4)].reduce((acc,_,i)=>{
+    const val = parseInt((document.getElementById('grade'+(i+1)).innerText || '0%').replace('%',''))||0;
+    return acc + val;
+  },0);
+  s.innerHTML = `<strong>Total score (demo):</strong> ${Math.round(total/4)}%`;
+}
 
-                        {/* SIMULATION TAB */}
-                        {activeTab === 'simulation' && (
-                            <div className="fade-in space-y-8">
-                                <h2 className="text-3xl font-bold text-slate-900 border-l-8 border-emerald-500 pl-4">Module 4: Financial Simulation</h2>
-                                <p className="text-lg text-slate-600">Use the calculator below to plan your pricing. A business with poor margins will fail regardless of how good the marketing is.</p>
-                                
-                                <ProfitCalculator />
+/* ---------- Discussions (simple) ---------- */
+function postDiscussion(){
+  const txt = document.getElementById('discussionInput').value.trim();
+  if(!txt) return alert('Write a message');
+  const list = document.getElementById('discussionList');
+  const div = document.createElement('div'); div.className='card';
+  div.innerHTML = `<div style="font-size:13px;color:#557f88">You — ${new Date().toLocaleString()}</div><div style="margin-top:6px">${escapeHtml(txt)}</div>`;
+  list.prepend(div);
+  document.getElementById('discussionInput').value='';
+}
 
-                                <div className="mt-8 text-center">
-                                    {/* Using console.log instead of alert() */}
-                                    <button onClick={() => console.log("Course Complete! Time to launch.")} className="bg-slate-900 text-white px-8 py-3 rounded-lg font-bold hover:bg-slate-700">
-                                        Complete Course & Generate Certificate
-                                    </button>
-                                </div>
-                            </div>
-                        )}
+/* ---------- Drag & Drop logic ---------- */
+const draggables = document.querySelectorAll('.draggable');
+draggables.forEach(d=>{
+  d.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', d.id); setTimeout(()=>d.style.opacity=0.4,50)});
+  d.addEventListener('dragend', ()=>d.style.opacity=1);
+});
+const dropzones = document.querySelectorAll('.dropzone');
+dropzones.forEach(z=>{
+  z.addEventListener('dragover', e=>e.preventDefault());
+  z.addEventListener('drop', e=>{
+    e.preventDefault();
+    const id = e.dataTransfer.getData('text/plain');
+    const node = document.getElementById(id);
+    if(!node) return;
+    // append
+    z.appendChild(node);
+  });
+});
+function checkDrag(){
+  const z1 = Array.from(document.getElementById('drop_visuals').querySelectorAll('.draggable')).map(n=>n.id);
+  const z2 = Array.from(document.getElementById('drop_text').querySelectorAll('.draggable')).map(n=>n.id);
+  const ok1 = ['d_canva','d_phone'];
+  const ok2 = ['d_docs'];
+  const res = document.getElementById('drag_result');
+  const pass1 = ok1.every(x=>z1.includes(x));
+  const pass2 = ok2.every(x=>z2.includes(x));
+  if(pass1 && pass2) res.innerHTML = `<div class="correct">Good job — tools matched correctly. Reflection: Which tool would you use first and why?</div>`;
+  else res.innerHTML = `<div class="feedback">Not all matches are correct. Tip: Visuals belong with Canva/phone camera; text checklists with Google Docs.</div>`;
+}
 
-                    </main>
+/* ---------- Utility ---------- */
+function escapeHtml(s){ if(!s) return ''; return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
 
-                    <footer className="bg-slate-900 text-slate-400 py-10 mt-auto border-t border-slate-800">
-                        <div className="max-w-5xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
-                            <div>
-                                <div className="font-bold text-white tracking-wider mb-1">CAMPUS<span className="text-amber-500">TO</span>COMMERCE</div>
-                                <p className="text-xs">Est. 2024 | MBA Final Project</p>
-                            </div>
-                            <div className="flex space-x-6 mt-4 md:mt-0 text-sm">
-                                <a href="#" className="hover:text-white transition">Privacy</a>
-                                <a href="#" className="hover:text-white transition">Terms</a>
-                                <a href="#" className="hover:text-white transition">Contact Instructor</a>
-                            </div>
-                        </div>
-                    </footer>
-                </div>
-            );
-        };
+/* ---------- QUIZZES data (4 quizzes, 20 questions each) ---------- */
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+/*
+Structure:
+quizzes = [
+  { id:"quiz1", title:"Learning Plan", questions:[ {q:"", options:{a:"",b:"",c:"",d:""}, correct:"a", explanation:{a:"...", b:"...", c:"...", d:"..."} }, ... ] },
+  ...
+]
+*/
+
+const quizzes = [
+  {
+    id: 'quiz1',
+    title: 'Quiz 1 — Learning Plan (20 Qs)',
+    questions: [
+      { q: 'What is the first step when creating a learning plan?', options:{a:'Identify strengths and weaknesses', b:'Buy materials', c:'Hire a coach', d:'Skip to the test'}, correct:'a',
+        explanation:{
+          a:'Correct — a learning plan begins by knowing strengths/weaknesses to set goals.',
+          b:'Incorrect — buying materials is secondary and may not be needed for a $0 plan.',
+          c:'Incorrect — coaching helps but is not the first step.',
+          d:'Incorrect — skipping planning undermines learning.'
+        }},
+      { q: 'A SMART goal means all except which?', options:{a:'Specific', b:'Measurable', c:'Attainable', d:'Spontaneous'}, correct:'d',
+        explanation:{
+          a:'Correct element of SMART.',
+          b:'Correct element of SMART.',
+          c:'Correct element of SMART.',
+          d:'Spontaneous is not part of SMART; goals should be planned.'
+        }},
+      { q: 'Which is a measurable learning outcome?', options:{a:'Improve communication', b:'Read more books', c:'Increase portfolio projects from 0 to 2 in 4 weeks', d:'Be better'}, correct:'c',
+        explanation:{
+          a:'Too vague—need measure or timeline.',
+          b:'Vague—how many books and by when?',
+          c:'Correct — specific, measurable, and time-bound.',
+          d:'Unclear and subjective.'
+        }},
+      { q: 'Why prioritize learning tasks?', options:{a:'To focus on what moves you forward', b:'To do everything at once', c:'To delay action', d:'To avoid feedback'}, correct:'a',
+        explanation:{
+          a:'Correct—prioritization helps efficient progress.',
+          b:'Incorrect—doing everything at once leads to overload.',
+          c:'Incorrect—prioritization is for taking timely action.',
+          d:'Incorrect—feedback is essential.'
+        }},
+      { q: 'Which tool is best to document a learning plan quickly?', options:{a:'Spreadsheet or Google Docs', b:'Expensive LMS', c:'Only memory', d:'None'}, correct:'a',
+        explanation:{
+          a:'Correct—Google Docs or Sheets are free and efficient.',
+          b:'Expensive LMS may help but is unnecessary for a $0 plan.',
+          c:'Relying only on memory is not reliable.',
+          d:'Incorrect—documentation is necessary.'
+        }},
+      { q: 'A short-term learning milestone is...', options:{a:'Finish a 2-page guide in 1 week', b:'Learn everything', c:'Become CEO', d:'Instant success'}, correct:'a',
+        explanation:{
+          a:'Correct—specific and short-term.',
+          b:'Vague and unrealistic.',
+          c:'Too long-term and vague.',
+          d:'Unrealistic.'
+        }},
+      { q: 'Which shows reflection in a learning plan?', options:{a:'Listing what worked and why', b:'Only listing tasks', c:'Ignoring feedback', d:'Copying others'}, correct:'a',
+        explanation:{
+          a:'Correct—reflection assesses learning process.',
+          b:'Tasks are fine but reflection adds depth.',
+          c:'Ignoring feedback reduces learning.',
+          d:'Copying prevents original insight.'
+        }},
+      { q: 'How often should you review a learning plan?', options:{a:'Never', b:'Daily for major changes', c:'Weekly to check progress', d:'Only at the end'}, correct:'c',
+        explanation:{
+          a:'Never is incorrect.',
+          b:'Daily may be too frequent for some plans; weekly is practical.',
+          c:'Correct—weekly reviews keep momentum.',
+          d:'Waiting until the end misses iteration opportunities.'
+        }},
+      { q: 'What is a key benefit of writing goals down?', options:{a:'Improves clarity and accountability', b:'Just for show', c:'Wastes time', d:'Avoids work'}, correct:'a',
+        explanation:{
+          a:'Correct—written goals increase commitment.',
+          b:'Incorrect—there is practical value.',
+          c:'Incorrect—writing supports focus.',
+          d:'Incorrect.'
+        }},
+      { q: 'Which metric is best for knowledge-based goals?', options:{a:'Number of practice tasks completed', b:'How you feel', c:'Random guesses', d:'Time spent on social media'}, correct:'a',
+        explanation:{
+          a:'Correct—practice tasks are measurable.',
+          b:'Feelings are subjective and less reliable alone.',
+          c:'Incorrect—metrics should be meaningful.',
+          d:'Irrelevant.'
+        }},
+      // 10 more Qs for quiz1 (to total 20)
+      { q: 'What role does feedback play?', options:{a:'Informs improvements', b:'Punishes learners', c:'Is optional', d:'Confuses students'}, correct:'a',
+        explanation:{a:'Correct—feedback guides iteration', b:'Incorrect—feedback should be constructive', c:'Incorrect—feedback is important', d:'Incorrect'}},
+      { q: 'Which is a poor learning objective?', options:{a:'Increase portfolio projects by 2', b:'Get better at coding', c:'Publish one tutorial', d:'Complete three practice tasks'}, correct:'b',
+        explanation:{a:'Good objective', b:'Too vague—no measure', c:'Good objective', d:'Good objective'}},
+      { q: 'How should you split a large goal?', options:{a:'Into smaller milestones', b:'Ignore it', c:'Do it all at once', d:'Wait for perfect tools'}, correct:'a',
+        explanation:{a:'Correct—small milestones help progress', b:'Incorrect', c:'Inefficient', d:'Leads to delays'}},
+      { q: 'Which is best for tracking progress?', options:{a:'Checklist with dates', b:'Memorization', c:'Random notes', d:'Guessing'}, correct:'a',
+        explanation:{a:'Correct', b:'Unreliable', c:'Hard to review', d:'Not actionable'}},
+      { q: 'Why align goals with strengths?', options:{a:'Faster progress and motivation', b:'Makes it harder', c:'Unrelated', d:'Wastes time'}, correct:'a',
+        explanation:{a:'Correct', b:'Incorrect', c:'Not true', d:'Incorrect'}},
+      { q: 'What to do when a goal is missed?', options:{a:'Reflect and adjust', b:'Give up', c:'Blame others', d:'Ignore'}, correct:'a',
+        explanation:{a:'Correct—iteration is key', b:'Negative', c:'Unproductive', d:'Not helpful'}},
+      { q: 'Which is an example of a learning evidence?', options:{a:'Completed a sample project', b:'Hoped improvement', c:'No record', d:'Vague claim'}, correct:'a',
+        explanation:{a:'Correct—projects show learning', b:'Not evidence', c:'No proof', d:'Insufficient'}},
+      { q: 'A learning plan should be?', options:{a:'Flexible and reviewed', b:'Rigid and fixed', c:'Hidden', d:'Untested'}, correct:'a',
+        explanation:{a:'Correct—adaptation is important', b:'Rigid plans fail often', c:'Hidden is useless', d:'Untested is risky'}},
+      { q: 'Best way to get feedback?', options:{a:'Ask peers to try prototype', b:'Assume it works', c:'Ignore responses', d:'Only self-check'}, correct:'a',
+        explanation:{a:'Correct—peer feedback is valuable', b:'Dangerous', c:'Avoids improvement', d:'Limited'}},
+    ]
+  },
+
+  {
+    id: 'quiz2',
+    title: 'Quiz 2 — $0 Challenge (20 Qs)',
+    questions: [
+      { q:'What is the $0 Challenge primary purpose?', options:{a:'Create solutions without spending money', b:'Spend minimal money', c:'Buy the best tools', d:'Outsource work'}, correct:'a',
+        explanation:{a:'Correct—resourcefulness is the goal', b:'Not primary', c:'Contrary to $0 idea', d:'Not the objective'}},
+      { q:'Which resource counts in $0 Challenge?', options:{a:'Time and skills', b:'Only money', c:'None', d:'Credit cards'}, correct:'a',
+        explanation:{a:'Correct—time and skill are core resources', b:'Money is not allowed', c:'Incorrect', d:'Not allowed'}},
+      { q:'How should you prototype in $0 Challenge?', options:{a:'Using free tools (Canva, Docs)', b:'Buy expensive materials', c:'Hire professionals', d:'Wait'}, correct:'a',
+        explanation:{a:'Correct—use free resources', b:'Not allowed', c:'Against $0 principle', d:'Delays learning'}},
+      { q:'Testing prototypes requires?', options:{a:'Feedback from users', b:'No testing', c:'Perfect design', d:'Large budget'}, correct:'a',
+        explanation:{a:'Correct—feedback validates ideas', b:'Skipping testing risks failure', c:'Perfection not required', d:'Budget not needed'}},
+      { q:'Which is an example of repurposing?', options:{a:'Using cardboard for signage', b:'Buying new signboards', c:'Using paid service', d:'Ignoring resources'}, correct:'a',
+        explanation:{a:'Correct—repurposing saves money', b:'Contradicts $0', c:'Spending', d:'Not creative'}},
+      { q:'Why record observations during shopping?', options:{a:'To notice repurposable items', b:'To shop permanently', c:'To spend', d:'To take photos only'}, correct:'a',
+        explanation:{a:'Correct—observations find opportunities', b:'Not the point', c:'Wrong', d:'Partial'}},
+      { q:'A key skill for $0 Challenge is?', options:{a:'Creativity', b:'Buying power', c:'Ignoring constraints', d:'Overplanning'}, correct:'a',
+        explanation:{a:'Correct—creativity finds solutions', b:'Price focus is irrelevant', c:'Constraints are useful', d:'Overplanning hinders action'}},
+      { q:'How many people should test your prototype initially?', options:{a:'1–3 testers', b:'100 testers', c:'None', d:'Only instructors'}, correct:'a',
+        explanation:{a:'Correct—small tests are fast and informative', b:'Too large initially', c:'No testing is bad', d:'Limited perspective'}},
+      { q:'What does “zero-cost” encourage?', options:{a:'Resourcefulness', b:'Spending more', c:'Low quality', d:'Avoiding work'}, correct:'a',
+        explanation:{a:'Correct', b:'Opposite', c:'Not necessary', d:'Incorrect'}},
+      { q:'Which is NOT part of $0 Challenge?', options:{a:'Relying on campus free resources', b:'Asking friends for help', c:'Purchasing premium assets', d:'Using free online tools'}, correct:'c',
+        explanation:{a:'Allowed', b:'Allowed', c:'Not allowed for $0', d:'Allowed'}},
+      // 10 more
+      { q:'How should feedback be recorded?', options:{a:'Short notes and action items', b:'Ignore feedback', c:'Only praise', d:'No record'}, correct:'a',
+        explanation:{a:'Correct—notes guide iteration', b:'Bad practice', c:'Incomplete', d:'Ineffective'}},
+      { q:'What is a rapid prototype?', options:{a:'Simple mockup to test idea', b:'Polished final product', c:'Expensive sample', d:'Long-term project'}, correct:'a',
+        explanation:{a:'Correct—rapid prototypes are quick tests', b:'Not necessary early', c:'Too costly', d:'Not rapid'}},
+      { q:'Which attitude helps $0 Challenge?', options:{a:'Experimentation', b:'Perfection', c:'Fear of failure', d:'Indecision'}, correct:'a',
+        explanation:{a:'Correct—experimentation is essential', b:'Perfection delays progress', c:'Limits learning', d:'Hinders action'}},
+      { q:'Which free platform is good for basic design?', options:{a:'Canva', b:'Paid studio', c:'Custom software', d:'None'}, correct:'a',
+        explanation:{a:'Correct', b:'Expensive', c:'Not required', d:'Incorrect'}},
+      { q:'Best way to get initial users?', options:{a:'Share with classmates/friends', b:'Paid ads', c:'Large marketing', d:'Ignore users'}, correct:'a',
+        explanation:{a:'Correct—peers give useful feedback', b:'Costs money', c:'Too big early', d:'Avoids input'}},
+      { q:'When to iterate on prototype?', options:{a:'After collecting feedback', b:'Before testing', c:'Never', d:'Only when perfect'}, correct:'a',
+        explanation:{a:'Correct—use feedback to improve', b:'No data yet', c:'No improvement', d:'Delays progress'}},
+      { q:'What is minimal viable product (MVP)?', options:{a:'Bare-bones version that works', b:'Complete product', c:'Expensive model', d:'Unused idea'}, correct:'a',
+        explanation:{a:'Correct—MVP is minimal and testable', b:'Too final', c:'Costly', d:'Not product'}},
+      { q:'What is a risk of not testing?', options:{a:'Building something nobody uses', b:'Saving time', c:'Improving quality', d:'Better design'}, correct:'a',
+        explanation:{a:'Correct—testing prevents wasted effort', b:'False', c:'Untrue', d:'Not likely'}},
+      { q:'Which is an appropriate metric for $0 prototype?', options:{a:'Number of users who try it', b:'Money spent', c:'Precise sales', d:'None'}, correct:'a',
+        explanation:{a:'Correct—usage is a good early metric', b:'Spending not relevant', c:'Later stage', d:'Not helpful'}},
+      { q:'How can you scale a $0 idea later?', options:{a:'Use feedback to add low-cost features', b:'Immediately hire staff', c:'Ignore feedback', d:'Spend large budgets'}, correct:'a',
+        explanation:{a:'Correct—scale based on validated feedback', b:'Too rapid', c:'Bad', d:'Not necessary early'}},
+    ]
+  },
+
+  {
+    id: 'quiz3',
+    title: 'Quiz 3 — Action Plan & Implementation (20 Qs)',
+    questions: [
+      { q:'What is the first element of an action plan?', options:{a:'Specific tasks', b:'Ambiguous goals', c:'No timeline', d:'Only ideas'}, correct:'a',
+        explanation:{a:'Correct—tasks break down goals', b:'Vague', c:'Bad', d:'Not actionable'}},
+      { q:'Why set milestones?', options:{a:'Track progress and stay motivated', b:'Confuse learners', c:'Delay work', d:'Avoid measurement'}, correct:'a',
+        explanation:{a:'Correct', b:'Incorrect', c:'Not true', d:'Incorrect'}},
+      { q:'Which is a quality metric?', options:{a:'Completion of tasks', b:'Feelings only', c:'Random guess', d:'None'}, correct:'a',
+        explanation:{a:'Correct', b:'Subjective', c:'Not useful', d:'No'}},
+      { q:'Why assign deadlines?', options:{a:'Encourages accountability', b:'Prevents action', c:'Useless', d:'Stress only'}, correct:'a',
+        explanation:{a:'Correct—deadlines create accountability', b:'No', c:'Not accurate', d:'Only if unrealistic'}},
+      { q:'How to prioritize tasks?', options:{a:'Impact and effort', b:'Randomly', c:'Only urgent', d:'Ignore'}, correct:'a',
+        explanation:{a:'Correct—impact/effort matrix helps', b:'Bad', c:'Limits strategy', d:'No'}},
+      { q:'When should you pivot?', options:{a:'After testing shows poor fit', b:'Never', c:'At random', d:'Only after success'}, correct:'a',
+        explanation:{a:'Correct—use testing to decide', b:'Inflexible', c:'Bad', d:'Too late'}},
+      { q:'What is a KPI?', options:{a:'Key Performance Indicator', b:'Random number', c:'Personal feeling', d:'Unrelated'}, correct:'a',
+        explanation:{a:'Correct', b:'Wrong', c:'Subjective', d:'No'}},
+      { q:'Which helps measure user engagement?', options:{a:'Number of active users', b:'Number of tasks', c:'Number of ideas', d:'None'}, correct:'a',
+        explanation:{a:'Correct—active users show engagement', b:'Not direct', c:'Ideas not users', d:'No'}},
+      { q:'Why keep logs of actions?', options:{a:'For reflection and evidence', b:'For secrecy', c:'Unnecessary', d:'Only for show'}, correct:'a',
+        explanation:{a:'Correct—logs inform iteration', b:'Incorrect', c:'Not true', d:'Superficial'}},
+      { q:'Which approach reduces risk?', options:{a:'Iterate quickly', b:'Wait until perfect', c:'Ignore users', d:'Spend more money'}, correct:'a',
+        explanation:{a:'Correct—fast iteration lowers risk', b:'Slow', c:'Bad', d:'Not necessary early'}},
+      // 10 more
+      { q:'How detailed should first-week tasks be?', options:{a:'Very specific and small', b:'Vague', c:'Unachievable', d:'Too many'}, correct:'a',
+        explanation:{a:'Correct—small steps are actionable', b:'Vague', c:'Not good', d:'Overwhelming'}},
+      { q:'What to include in action plan resources?', options:{a:'People, tools, time', b:'Only budget', c:'None', d:'Mystery items'}, correct:'a',
+        explanation:{a:'Correct—resources are practical', b:'Budget alone insufficient', c:'No', d:'Not useful'}},
+      { q:'How often to review action plan?', options:{a:'Weekly', b:'Every year', c:'Never', d:'Daily intensive'}, correct:'a',
+        explanation:{a:'Correct—weekly keeps momentum', b:'Too rare', c:'Bad', d:'Too frequent normally'}},
+      { q:'Which helps reduce scope?', options:{a:'Focus on essential features', b:'Add everything', c:'Ignore constraints', d:'Delay'}, correct:'a',
+        explanation:{a:'Correct—MVP approach', b:'Bad', c:'Not helpful', d:'Not efficient'}},
+      { q:'How to document results?', options:{a:'Short reports and data points', b:'No record', c:'Only memory', d:'Vague notes'}, correct:'a',
+        explanation:{a:'Correct—concise documentation works', b:'Bad', c:'Unreliable', d:'Insufficient'}},
+      { q:'What is action owner?', options:{a:'Person responsible for a task', b:'No one', c:'Entire team', d:'Random'}, correct:'a',
+        explanation:{a:'Correct—clear ownership matters', b:'No', c:'Unclear', d:'Bad'}},
+      { q:'How to handle missed milestones?', options:{a:'Analyze cause and adjust', b:'Ignore', c:'Blame', d:'Cancel project'}, correct:'a',
+        explanation:{a:'Correct—learn and adapt', b:'Bad', c:'Bad', d:'Extreme'}},
+      { q:'Why make small experiments?', options:{a:'To test assumptions cheaply', b:'To waste time', c:'To spend money', d:'For fun only'}, correct:'a',
+        explanation:{a:'Correct', b:'No', c:'Not $0', d:'Not primary'}},
+      { q:'Which is a realistic metric for early stage?', options:{a:'User signups or trials', b:'Revenue per user', c:'Full profits', d:'Only impressions'}, correct:'a',
+        explanation:{a:'Correct—early metrics focus on engagement', b:'Later stage', c:'Long-term', d:'Less telling alone'}},
+      { q:'Which strategy prevents scope creep?', options:{a:'Strictly define deliverables', b:'Add features constantly', c:'Ignore schedule', d:'No priorities'}, correct:'a',
+        explanation:{a:'Correct—definition controls scope', b:'Leads to creep', c:'Bad', d:'Bad'}},
+    ]
+  },
+
+  {
+    id: 'quiz4',
+    title: 'Quiz 4 — Multimedia & Assessment (20 Qs)',
+    questions: [
+      { q:'What is Mayer’s main idea about multimedia learning?', options:{a:'Use visual + auditory channels', b:'Only text is best', c:'Multimedia confuses', d:'Avoid images'}, correct:'a',
+        explanation:{a:'Correct—dual channels improve learning', b:'Not true', c:'Depends on design', d:'No'}},
+      { q:'What is cognitive load?', options:{a:'The mental effort required to learn', b:'Physical weight', c:'Internet speed', d:'None'}, correct:'a',
+        explanation:{a:'Correct', b:'Wrong', c:'Irrelevant', d:'Not correct'}},
+      { q:'How to reduce extraneous load?', options:{a:'Remove irrelevant info', b:'Add more text', c:'Use long videos', d:'Complicate layout'}, correct:'a',
+        explanation:{a:'Correct—keep design simple', b:'Increases load', c:'May overload', d:'Bad'}},
+      { q:'Best length for instructional video (general)?', options:{a:'3–7 minutes', b:'60 minutes', c:'30 seconds', d:'4 hours'}, correct:'a',
+        explanation:{a:'Correct—short focused videos work well', b:'Too long', c:'Sometimes too short', d:'Too long'}},
+      { q:'What is formative assessment?', options:{a:'Assessment for learning during instruction', b:'Final exam', c:'Not assessment', d:'Grading only'}, correct:'a',
+        explanation:{a:'Correct—formative guides learning', b:'Summative', c:'Incorrect', d:'Narrow view'}},
+      { q:'How can multimedia quizzes help?', options:{a:'Present realistic scenarios', b:'Confuse learners', c:'Always fail', d:'Reduce clarity'}, correct:'a',
+        explanation:{a:'Correct—multimedia adds context', b:'If poorly designed maybe', c:'Not inherent', d:'Depends'}},
+      { q:'Which is good accessibility practice?', options:{a:'Provide captions for videos', b:'Only audio', c:'No transcripts', d:'Complex visuals without text'}, correct:'a',
+        explanation:{a:'Correct—captions help many learners', b:'Insufficient', c:'Bad', d:'Unfriendly'}},
+      { q:'What is usability testing for multimedia?', options:{a:'Testing navigation and clarity', b:'Only content review', c:'Ignore users', d:'Only developer testing'}, correct:'a',
+        explanation:{a:'Correct—usability checks how learners interact', b:'Partial', c:'Bad', d:'Limited'}},
+      { q:'Which tool helps create simple multimedia for $0?', options:{a:'Canva', b:'Premium studio only', c:'Expensive editors', d:'None'}, correct:'a',
+        explanation:{a:'Correct—Canva has free features', b:'Costly', c:'Not $0', d:'False'}},
+      { q:'Why include images in instruction?', options:{a:'Support visual processing', b:'Just to decorate', c:'Distract', d:'Not useful'}, correct:'a',
+        explanation:{a:'Correct—images help comprehension when relevant', b:'Possible but not ideal', c:'If irrelevant, yes', d:'No'}},
+      // 10 more
+      { q:'What is dual coding?', options:{a:'Combining visual and verbal representations', b:'Using two codes only', c:'Encrypting data', d:'Not related'}, correct:'a',
+        explanation:{a:'Correct—dual coding supports memory', b:'Not accurate', c:'Irrelevant', d:'No'}},
+      { q:'How to assess multimedia clarity?', options:{a:'Use short comprehension questions', b:'Assume clarity', c:'Only peer praise', d:'No test'}, correct:'a',
+        explanation:{a:'Correct—comprehension questions measure clarity', b:'Risky', c:'Not enough', d:'No feedback'}},
+      { q:'Caption benefits include?', options:{a:'Support comprehension and accessibility', b:'Hide content', c:'Distract only', d:'Replace audio entirely'}, correct:'a',
+        explanation:{a:'Correct', b:'No', c:'Not only', d:'Captions supplement audio'}},
+      { q:'What to test in multimedia usability?', options:{a:'Load times, controls, labels', b:'Only color', c:'Only font', d:'Irrelevant metrics'}, correct:'a',
+        explanation:{a:'Correct—technical and UI factors matter', b:'Partial', c:'Partial', d:'No'}},
+      { q:'Which measure indicates better learning?', options:{a:'Improved task performance', b:'More clicks', c:'Longer time on page', d:'Higher bounce rate'}, correct:'a',
+        explanation:{a:'Correct—performance shows learning', b:'Not necessarily', c:'Ambiguous', d:'Negative'}},
+      { q:'How to design effective instructional video?', options:{a:'Segment content and add prompts', b:'Long continuous lecture', c:'Unscripted ramble', d:'Only text slides'}, correct:'a',
+        explanation:{a:'Correct—segmentation helps attention', b:'Too long', c:'Unclear', d:'Missing multimodal benefits'}},
+      { q:'When using audio, ensure?', options:{a:'Clear voice and moderate pace', b:'Very low volume', c:'Rushed speech', d:'No pauses'}, correct:'a',
+        explanation:{a:'Correct—clarity and pace aid comprehension', b:'Problematic', c:'Hard to follow', d:'Monotone issues'}},
+      { q:'What does A/B testing of multimedia do?', options:{a:'Compares two designs to see which works better', b:'Confuses learners', c:'Always fails', d:'Not measurable'}, correct:'a',
+        explanation:{a:'Correct—A/B helps optimize design', b:'Not necessarily', c:'No', d:'False'}},
+      { q:'Which is NOT an accessibility feature?', options:{a:'Auto-playing video with no controls', b:'Captions', c:'Transcripts', d:'Readable fonts'}, correct:'a',
+        explanation:{a:'Correct—auto-play without controls is harmful', b:'Good', c:'Good', d:'Good'}},
+      { q:'Why pilot test multimedia with students?', options:{a:'Find and fix issues early', b:'Only for show', c:'No need', d:'Because others do'}, correct:'a',
+        explanation:{a:'Correct—pilot tests reveal real issues', b:'Insincere', c:'Risky', d:'Not reasoned'}},
+    ]
+  }
+];
+
+/* ---------- Render quiz cards ---------- */
+const quizCardsEl = document.getElementById('quizCards');
+quizzes.forEach(q=>{
+  const card = document.createElement('div'); card.className='quiz-card';
+  card.innerHTML = `<strong>${escapeHtml(q.title)}</strong><div style="margin-top:8px"><button onclick="startQuiz('${q.id}')">Start Quiz</button></div>`;
+  quizCardsEl.appendChild(card);
+});
+
+/* ---------- Quiz engine ---------- */
+let activeQuiz = null;
+let activeIndex = 0;
+let userAnswers = [];
+
+function startQuiz(id){
+  activeQuiz = quizzes.find(x=>x.id===id);
+  activeIndex = 0;
+  userAnswers = Array(activeQuiz.questions.length).fill(null);
+  document.getElementById('quizArea').innerHTML = '';
+  renderQuestion();
+  // show quiz area
+  document.getElementById('quizzesPage').scrollIntoView({behavior:'smooth'});
+}
+
+function renderQuestion(){
+  const area = document.getElementById('quizArea');
+  const q = activeQuiz.questions[activeIndex];
+  area.innerHTML = `<div class="card">
+    <h3>${escapeHtml(activeQuiz.title)} — Question ${activeIndex+1} of ${activeQuiz.questions.length}</h3>
+    <div class="question"><strong>${escapeHtml(q.q)}</strong></div>
+    <div style="margin-top:8px" id="optionsArea"></div>
+    <div style="margin-top:12px">
+      ${activeIndex>0?'<button onclick="prevQuestion()">Previous</button>':''}
+      ${activeIndex<activeQuiz.questions.length-1?'<button onclick="nextQuestion()">Next</button>':'<button onclick="finishQuiz()">Finish Quiz</button>'}
+    </div>
+    <div id="explainArea" style="margin-top:10px"></div>
+  </div>`;
+  const optionsArea = document.getElementById('optionsArea');
+  Object.entries(q.options).forEach(([k,v])=>{
+    const div = document.createElement('div'); div.className='option'; div.id='opt_'+k;
+    div.innerHTML = `<strong>${k.toUpperCase()}.</strong> ${escapeHtml(v)}`;
+    div.addEventListener('click', ()=> selectOption(k));
+    optionsArea.appendChild(div);
+  });
+  // if answer exists, mark and show explanation
+  if(userAnswers[activeIndex]){
+    markSelection(userAnswers[activeIndex]);
+    showExplanation(userAnswers[activeIndex]);
+  }
+}
+
+function selectOption(choice){
+  userAnswers[activeIndex] = choice;
+  markSelection(choice);
+  showExplanation(choice);
+}
+
+function markSelection(choice){
+  document.querySelectorAll('#optionsArea .option').forEach(o=>o.classList.remove('selected'));
+  const el = document.getElementById('opt_'+choice);
+  if(el) el.classList.add('selected');
+}
+
+function showExplanation(choice){
+  const q = activeQuiz.questions[activeIndex];
+  const explainArea = document.getElementById('explainArea');
+  const correct = q.correct;
+  const explanation = q.explanation[choice] || '';
+  if(choice === correct){
+    explainArea.innerHTML = `<div class="correct"><strong>Correct.</strong> ${escapeHtml(explanation)}</div>`;
+  } else {
+    // show corrected feedback including why correct answer is right
+    explainArea.innerHTML = `<div class="feedback"><strong>Not quite.</strong> ${escapeHtml(explanation)}<br><small>Correct answer: ${correct.toUpperCase()} — ${escapeHtml(q.options[correct])}</small><div style="margin-top:6px;color:#445b6b">${escapeHtml(q.explanation[correct])}</div></div>`;
+  }
+}
+
+function nextQuestion(){
+  if(!userAnswers[activeIndex]) { if(!confirm('You have not selected an answer. Continue?')) return; }
+  activeIndex++;
+  renderQuestion();
+}
+function prevQuestion(){ activeIndex--; renderQuestion(); }
+
+function finishQuiz(){
+  // compute score
+  let score=0;
+  activeQuiz.questions.forEach((q,i)=>{ if(userAnswers[i]===q.correct) score++; });
+  const area = document.getElementById('quizArea');
+  area.innerHTML = `<div class="card"><h3>${escapeHtml(activeQuiz.title)} — Results</h3>
+    <div class="summary"><strong>Score:</strong> ${score} / ${activeQuiz.questions.length} (${Math.round(score/activeQuiz.questions.length*100)}%)</div>
+    <div style="margin-top:12px"><button onclick="reviewAnswers()">Review Answers</button> <button onclick="startQuiz('${activeQuiz.id}')">Retake Quiz</button></div></div>`;
+  // store quiz result
+  localStorage.setItem('c2c_quiz_'+activeQuiz.id, JSON.stringify({score:score,total:activeQuiz.questions.length,date:new Date().toISOString()}));
+  renderGrades(); // update grades summary area
+}
+
+function reviewAnswers(){
+  // show each question with chosen and correct
+  const area = document.getElementById('quizArea'); area.innerHTML='';
+  activeQuiz.questions.forEach((q,i)=>{
+    const div = document.createElement('div'); div.className='card';
+    const chosen = userAnswers[i];
+    const correct = q.correct;
+    div.innerHTML = `<div style="font-size:14px"><strong>Q${i+1}.</strong> ${escapeHtml(q.q)}</div>
+      <div style="margin-top:6px">${Object.entries(q.options).map(([k,v])=>`<div style="padding:6px;border-radius:6px;margin-top:6px;background:${k===correct ? '#e9fbf7' : (k===chosen ? '#fffbe6' : '#fff')};border:1px solid #e6eef8"><strong>${k.toUpperCase()}.</strong> ${escapeHtml(v)}</div>`).join('')}</div>
+      <div style="margin-top:8px">${k=>k}</div>
+      <div style="margin-top:10px;color:#445b6b"><strong>Explanation (selected):</strong><div style="margin-top:6px">${escapeHtml(q.explanation[chosen] || 'No answer selected')}</div></div>
+      <div style="margin-top:8px;color:#2a6f60"><strong>Why correct answer is right:</strong><div style="margin-top:6px">${escapeHtml(q.explanation[correct])}</div></div>`;
+    area.appendChild(div);
+  });
+  area.scrollIntoView({behavior:'smooth'});
+}
+
+/* ---------- On load: restore saved assignments to inputs ---------- */
+window.addEventListener('load', ()=>{
+  Object.keys(localStorage).forEach(k=>{
+    if(k.startsWith(ASSIGN_PREFIX)){
+      const id = k.replace(ASSIGN_PREFIX,'');
+      const el = document.getElementById(id);
+      if(el) el.value = localStorage.getItem(k);
+      // update status UI if exists
+      const status = document.getElementById(id+'_status');
+      if(status) status.textContent = 'Saved locally';
+      // update grade
+      const mod = moduleMap[id];
+      if(mod){ document.getElementById('status'+mod).innerText='Completed'; document.getElementById('grade'+mod).innerText='100%'; }
+    }
+  });
+  renderGrades();
+});
+
+/* ---------- helper to show initial module toggles collapsed/expand ---------- */
+document.querySelectorAll('.module').forEach((m,i)=>{ /* collapsed by default */ });
+
+/* ---------- Utility for escaping (already defined) ---------- */
+</script>
 </body>
 </html>
